@@ -146,7 +146,7 @@
     <ClCompile Include="..\..\d3d12book-master\Common\d3dUtil.cpp" />
     <ClCompile Include="..\..\d3d12book-master\Common\GameTimer.cpp" />
     <ClCompile Include="..\..\d3d12book-master\Common\MathHelper.cpp" />
-    <ClCompile Include="BoxApp.cpp" />
+    <ClCompile Include="InitDirect3D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\d3d12book-master\Common\d3dApp.h" />
@@ -154,6 +154,7 @@
     <ClInclude Include="..\..\d3d12book-master\Common\GameTimer.h" />
     <ClInclude Include="..\..\d3d12book-master\Common\MathHelper.h" />
     <ClInclude Include="..\..\d3d12book-master\Common\UploadBuffer.h" />
+    <ClInclude Include="InitDirect3D.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

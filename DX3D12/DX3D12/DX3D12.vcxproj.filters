@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Chapter4">
+      <UniqueIdentifier>{af1815f7-43b1-4afb-ac74-d64db8cf37ca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\d3d12book-master\Common\d3dApp.cpp">
@@ -27,8 +30,8 @@
     <ClCompile Include="..\..\d3d12book-master\Common\MathHelper.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="BoxApp.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="InitDirect3D.cpp">
+      <Filter>Chapter4</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -46,6 +49,9 @@
     </ClInclude>
     <ClInclude Include="..\..\d3d12book-master\Common\UploadBuffer.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="InitDirect3D.h">
+      <Filter>Chapter4</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
