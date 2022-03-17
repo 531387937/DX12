@@ -4,11 +4,11 @@
 
 using namespace DirectX;
 
-class InitDirecrt3DApp :public D3DApp
+class InitDirect3DApp :public D3DApp
 {
 public:
-	InitDirecrt3DApp(HINSTANCE hInstance);
-	~InitDirecrt3DApp();
+	InitDirect3DApp(HINSTANCE hInstance);
+	~InitDirect3DApp();
 	virtual bool Initialize()override;
 
 private:
