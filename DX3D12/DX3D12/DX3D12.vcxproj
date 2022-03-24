@@ -146,6 +146,7 @@
     <ClCompile Include="..\..\d3d12book-master\Common\d3dUtil.cpp" />
     <ClCompile Include="..\..\d3d12book-master\Common\GameTimer.cpp" />
     <ClCompile Include="..\..\d3d12book-master\Common\MathHelper.cpp" />
+    <ClCompile Include="Box.cpp" />
     <ClCompile Include="InitDirect3D.cpp" />
   </ItemGroup>
   <ItemGroup>

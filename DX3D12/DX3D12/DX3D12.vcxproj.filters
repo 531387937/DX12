@@ -16,6 +16,9 @@
     <Filter Include="Chapter4">
       <UniqueIdentifier>{af1815f7-43b1-4afb-ac74-d64db8cf37ca}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Chapter6">
+      <UniqueIdentifier>{a3931deb-0a76-46e4-b443-f6369d2884fa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\d3d12book-master\Common\d3dApp.cpp">
@@ -32,6 +35,9 @@
     </ClCompile>
     <ClCompile Include="InitDirect3D.cpp">
       <Filter>Chapter4</Filter>
+    </ClCompile>
+    <ClCompile Include="Box.cpp">
+      <Filter>Chapter6</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
