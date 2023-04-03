@@ -19,6 +19,9 @@
     <Filter Include="Chapter6">
       <UniqueIdentifier>{a3931deb-0a76-46e4-b443-f6369d2884fa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{5939dc06-a22a-4e1d-89f8-6c1100d1a056}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\d3d12book-master\Common\d3dApp.cpp">
@@ -59,5 +62,10 @@
     <ClInclude Include="InitDirect3D.h">
       <Filter>Chapter4</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Color.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
