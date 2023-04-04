@@ -222,6 +222,7 @@
       </SDLCheck>
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
+    <ClCompile Include="Chapter6\BoxApp.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -232,6 +233,7 @@
     <ClInclude Include="..\..\d3d12book-master\Common\MathHelper.h" />
     <ClInclude Include="..\..\d3d12book-master\Common\UploadBuffer.h" />
     <ClInclude Include="Chapter4\InitDirect3DApp.h" />
+    <ClInclude Include="Chapter6\BoxApp.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Color.hlsl">
@@ -240,9 +242,6 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Chapter6" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

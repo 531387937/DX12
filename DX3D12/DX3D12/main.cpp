@@ -1,5 +1,5 @@
-﻿#include "Chapter4/InitDirect3DApp.h"
-#include "DirectXColors.h"
+﻿#include "DirectXColors.h"
+#include "Chapter6/BoxApp.h"
 
 using namespace DirectX;
 
@@ -11,7 +11,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE preInstance,PSTR cmdLine,int sh
 
     try
     {
-        InitDirect3DApp theApp(hInstance);
+        BoxApp theApp(hInstance);
         if(!theApp.Initialize())
             return 0;
         
@@ -20,5 +20,6 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE preInstance,PSTR cmdLine,int sh
     catch (DxException &e)
     {
         MessageBox(nullptr,e.ToString().c_str(),L"HR Failed",MB_OK);
+        return 0;
     }
 }
