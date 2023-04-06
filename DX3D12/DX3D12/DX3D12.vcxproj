@@ -223,6 +223,7 @@
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
     <ClCompile Include="Chapter6\BoxApp.cpp" />
+    <ClCompile Include="Chapter7\ShapesApp.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -234,6 +235,7 @@
     <ClInclude Include="..\..\d3d12book-master\Common\UploadBuffer.h" />
     <ClInclude Include="Chapter4\InitDirect3DApp.h" />
     <ClInclude Include="Chapter6\BoxApp.h" />
+    <ClInclude Include="Chapter7\ShapesApp.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Color.hlsl">
