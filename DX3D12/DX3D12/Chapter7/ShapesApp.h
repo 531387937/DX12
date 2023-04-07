@@ -9,7 +9,11 @@ struct ObjectConstants
 {
     XMFLOAT4X4 Word = MathHelper::Identity4x4();
 };
-
+struct Vertex
+{
+    XMFLOAT3 Pos;
+    XMFLOAT4 Color;
+};
 struct PassConstants
 {
     XMFLOAT4X4 View;
@@ -62,7 +66,7 @@ public:
     UINT64 Fence = 0;
 };
 
-FrameResource::FrameResource(ID3D12Device* device, UINT passCount, UINT objectCount)
+inline FrameResource::FrameResource(ID3D12Device* device, UINT passCount, UINT objectCount)
 {
     ThrowIfFailed(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,IID_PPV_ARGS(&CmdListAlloc)));
     PassCB = std::make_unique<UploadBuffer<PassConstants>>(device,passCount,true);
@@ -73,11 +77,6 @@ inline FrameResource::~FrameResource()
 {
 }
 
-const int gNumFrameResources = 3;
-std::vector<std::unique_ptr<FrameResource>> mFrameResources;
-FrameResource* mCurrFrameResource = nullptr;
-int mCurrFrameResourceIndex = 0;
-
 class ShapesApp:public D3DApp
 {
 public:
@@ -87,7 +86,6 @@ public:
     ~ShapesApp();
     
     bool Initialize() override;
-    void OnResize() override;
     
 private:
     void OnMouseDown(WPARAM btnState, int x, int y) override;
@@ -95,19 +93,39 @@ private:
     void OnMouseUp(WPARAM btnState, int x, int y) override;
     void Update(const GameTimer& gt) override;
     void Draw(const GameTimer& gt) override;
+    void OnResize() override;
 
-    void BuildFrameResources();
-    void BuildRootSignature();
-    void BuildConstantsBuffers();
-    void BuildDescriptorHeaps();
-    void BuildShaderAndInputLayout();
-    void BuildPSO();
+    void OnKeyboardInput(const GameTimer& gt);
+    void UpdateCamera(const GameTimer& gt);
     void UpdateObjectCBs(const GameTimer& gt);
     void UpdateMainPassCB(const GameTimer& gt);
 
+    void BuildFrameResources();
+    void BuildRootSignature();
+    void BuildConstantsBufferViews();
+    void BuildDescriptorHeaps();
+    void BuildShadersAndInputLayout();
+    void BuildShapeGeometry();
+    void BuildRenderItems();
+    void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*> ritems);
+    void BuildPSO();
+
 private:
+
+    std::vector<std::unique_ptr<FrameResource>> mFrameResources;
+    FrameResource* mCurrFrameResource = nullptr;
+    int mCurrFrameResourceIndex = 0;
+    
     ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
     ComPtr<ID3D12DescriptorHeap> mCbvHeap = nullptr;
+
+    ComPtr<ID3D12DescriptorHeap> mSrvDescriptorHeap = nullptr;
+    std::unordered_map<std::string,std::unique_ptr<MeshGeometry>> mGeometries;
+    std::unordered_map<std::string,ComPtr<ID3DBlob>> mShaders;
+    std::unordered_map<std::string,ComPtr<ID3D12PipelineState>> mPSOs;
+
+    std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
+    
     ComPtr<ID3DBlob> mvsByteCode = nullptr;
     ComPtr<ID3DBlob> mpsByteCode = nullptr;
     ComPtr<ID3D12PipelineState> mPSO = nullptr;
@@ -115,16 +133,20 @@ private:
     std::vector<std::unique_ptr<RenderItem>> mAllRitems;
 
     std::vector<RenderItem*> mOpaqueRitems;
-    std::vector<RenderItem*> mTransparentRitems;
 
     float mTheta = 1.5f*XM_PI;
-    float mPhi = XM_PIDIV4;
-    float mRadius = 5.0f;
+    float mPhi = 0.2f*XM_PI;
+    float mRadius = 15.0f;
 
+    XMFLOAT3 mEyePos = { 0.0f, 0.0f, 0.0f };
     XMFLOAT4X4 mView = MathHelper::Identity4x4();
     XMFLOAT4X4 mProj = MathHelper::Identity4x4();
 
     PassConstants mMainPassCB;
+
+    UINT mPassCbvOffset = 0;
+
+    bool mIsWireframe = false;
 
     POINT mLastMousePos;
 };

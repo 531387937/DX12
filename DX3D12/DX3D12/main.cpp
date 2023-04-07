@@ -1,5 +1,5 @@
 ﻿#include "DirectXColors.h"
-#include "Chapter6/BoxApp.h"
+#include "Chapter7/ShapesApp.h"
 
 using namespace DirectX;
 
@@ -11,7 +11,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE preInstance,PSTR cmdLine,int sh
 
     try
     {
-        BoxApp theApp(hInstance);
+        ShapesApp theApp(hInstance);
         if(!theApp.Initialize())
             return 0;
         
