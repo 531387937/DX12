@@ -36,11 +36,26 @@
     <ClCompile Include="..\..\d3d12book-master\Common\MathHelper.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="InitDirect3D.cpp">
-      <Filter>Chapter4</Filter>
+    <ClCompile Include="..\..\d3d12book-master\Common\GeometryGenerator.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Box.cpp">
-      <Filter>Chapter6</Filter>
+    <ClCompile Include="Chapter4\InitDirect3DApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Chapter6\BoxApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Chapter7\ShapesApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Chapter8\LitWavesApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Chapter8\Waves.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -59,8 +74,23 @@
     <ClInclude Include="..\..\d3d12book-master\Common\UploadBuffer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="InitDirect3D.h">
-      <Filter>Chapter4</Filter>
+    <ClInclude Include="..\..\d3d12book-master\Common\GeometryGenerator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Chapter4\InitDirect3DApp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Chapter6\BoxApp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Chapter7\ShapesApp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Chapter8\LitWavesApp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Chapter8\Waves.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

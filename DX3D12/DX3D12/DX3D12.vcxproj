@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -78,7 +78,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>G:\DX12\d3d12book-master\Common;$(IncludePath)</IncludePath>
+    <IncludePath>G:\ADX12\d3d12book-master\Common;$(IncludePath)</IncludePath>
     <EnableMicrosoftCodeAnalysis>true</EnableMicrosoftCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -224,6 +224,10 @@
     </ClCompile>
     <ClCompile Include="Chapter6\BoxApp.cpp" />
     <ClCompile Include="Chapter7\ShapesApp.cpp" />
+    <ClCompile Include="Chapter8\LitWavesApp.cpp" />
+    <ClCompile Include="Chapter8\Waves.cpp" />
+    <ClCompile Include="Chapter9\FrameResource.cpp" />
+    <ClCompile Include="Chapter9\TexColumns.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -236,6 +240,10 @@
     <ClInclude Include="Chapter4\InitDirect3DApp.h" />
     <ClInclude Include="Chapter6\BoxApp.h" />
     <ClInclude Include="Chapter7\ShapesApp.h" />
+    <ClInclude Include="Chapter8\LitWavesApp.h" />
+    <ClInclude Include="Chapter8\Waves.h" />
+    <ClInclude Include="Chapter9\FrameResource.h" />
+    <ClInclude Include="Chapter9\TexColumns.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Color.hlsl">

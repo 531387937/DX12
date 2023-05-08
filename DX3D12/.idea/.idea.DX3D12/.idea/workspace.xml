@@ -14,10 +14,13 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="mock:///Dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/shared/dxgi.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/shared/intsafe.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/shared/minwindef.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/shared/windef.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um/DirectXMath.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um/DirectXMathMatrix.inl" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um/DirectXMathVector.inl" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um/Unknwnbase.h" root0="SKIP_HIGHLIGHTING" />
@@ -27,7 +30,7 @@
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um/minwinbase.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um/winnt.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/winrt/wrl/client.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://D:/Visual Studio2019/VC/Tools/MSVC/14.29.30133/include/xmemory" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://D:/VS2019/VC/Tools/MSVC/14.29.30133/include/string" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../d3d12book-master/Common/GeometryGenerator.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../d3d12book-master/Common/d3dx12.h" root0="SKIP_HIGHLIGHTING" />
   </component>
@@ -45,7 +48,7 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;XThreadsFramesViewSplitterKey&quot;: &quot;0.10053476&quot;,
+    &quot;XThreadsFramesViewSplitterKey&quot;: &quot;0.10044978&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -119,6 +122,14 @@
       <workItem from="1680693494710" duration="7701000" />
       <workItem from="1680749270569" duration="3398000" />
       <workItem from="1680867242306" duration="9981000" />
+      <workItem from="1681391486271" duration="5104000" />
+      <workItem from="1682003857669" duration="595000" />
+      <workItem from="1682853129131" duration="2247000" />
+      <workItem from="1682875717590" duration="758000" />
+      <workItem from="1682934698255" duration="5967000" />
+      <workItem from="1683015656217" duration="8333000" />
+      <workItem from="1683109907738" duration="1191000" />
+      <workItem from="1683210086548" duration="24397000" />
     </task>
     <servers />
   </component>

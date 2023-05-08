@@ -3,7 +3,10 @@
 //***************************************************************************************
 
 #include "GeometryGenerator.h"
+#include "fstream"
+#include "iostream"
 #include <algorithm>
+#include <string>
 
 using namespace DirectX;
 
@@ -654,4 +657,57 @@ GeometryGenerator::MeshData GeometryGenerator::CreateQuad(float x, float y, floa
 	meshData.Indices32[5] = 3;
 
     return meshData;
+}
+
+GeometryGenerator::MeshData GeometryGenerator::CreateSkull(const char* Skullfile)
+{
+	std::ifstream file;
+	file.open(Skullfile,std::ios::in);
+
+	if(file.is_open())
+	{
+		std::string str = {0};
+		file>>str;
+		file>>str;
+		int vertexCount = std::stoi(str);
+		file>>str;
+		file>>str;
+		int indexCount = std::stoi(str);
+
+		file>>str;
+		file>>str;
+		file>>str;
+		file>>str;
+		MeshData meshData;
+		meshData.Vertices.resize(vertexCount);
+		meshData.Indices32.resize(indexCount*3);
+		for(int i = 0;i<vertexCount;i++)
+		{
+			XMFLOAT3 position,normal;
+			file>>str;
+			position.x = std::stof(str);
+			file>>str;
+			position.y = std::stof(str);
+			file>>str;
+			position.z = std::stof(str);
+			file>>str;
+			normal.x = std::stof(str);
+			file>>str;
+			normal.y = std::stof(str);
+			file>>str;
+			normal.z = std::stof(str);
+			meshData.Vertices[i].Position = position;
+			meshData.Vertices[i].Normal = normal;
+		}
+		file>>str;
+		file>>str;
+		file>>str;
+		for(int i = 0;i<indexCount*3;i++)
+		{
+			file>>str;
+			meshData.Indices32[i] = std::stoi(str);
+		}
+		return meshData;
+	}
+	return CreateGeosphere(20.0f,3);
 }
