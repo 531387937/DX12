@@ -14,8 +14,6 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="mock:///Dummy.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///Dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/shared/dxgi.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/shared/intsafe.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/shared/minwindef.h" root0="SKIP_HIGHLIGHTING" />
@@ -30,7 +28,8 @@
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um/minwinbase.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um/winnt.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/winrt/wrl/client.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://D:/VS2019/VC/Tools/MSVC/14.29.30133/include/string" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://D:/Visual Studio2019/VC/Tools/MSVC/14.29.30133/include/xmemory" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../d3d12book-master/Common/DDSTextureLoader.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../d3d12book-master/Common/GeometryGenerator.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../d3d12book-master/Common/d3dx12.h" root0="SKIP_HIGHLIGHTING" />
   </component>
@@ -48,7 +47,7 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;XThreadsFramesViewSplitterKey&quot;: &quot;0.10044978&quot;,
+    &quot;XThreadsFramesViewSplitterKey&quot;: &quot;0.09962756&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -130,6 +129,11 @@
       <workItem from="1683015656217" duration="8333000" />
       <workItem from="1683109907738" duration="1191000" />
       <workItem from="1683210086548" duration="24397000" />
+      <workItem from="1685347349970" duration="42000" />
+      <workItem from="1685347471228" duration="5470000" />
+      <workItem from="1685433356578" duration="5867000" />
+      <workItem from="1685446234060" duration="6363000" />
+      <workItem from="1685497733764" duration="6580000" />
     </task>
     <servers />
   </component>

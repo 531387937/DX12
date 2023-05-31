@@ -1,5 +1,5 @@
 ﻿#include "DirectXColors.h"
-#include "Chapter7/ShapesApp.h"
+#include "Chapter9/CrateApp.h"
 
 using namespace DirectX;
 
@@ -11,7 +11,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE preInstance,PSTR cmdLine,int sh
 
     try
     {
-        ShapesApp theApp(hInstance);
+        CrateApp theApp(hInstance);
         if(!theApp.Initialize())
             return 0;
         

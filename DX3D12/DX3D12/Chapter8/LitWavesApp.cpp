@@ -1,6 +1,6 @@
 ﻿// #include "LitWavesApp.h"
 // #include "GeometryGenerator.h"
-// const int gNumFrameResources = 3;
+//
 //
 // LitWavesApp::LitWavesApp(HINSTANCE hInstance): D3DApp(hInstance)
 // {
