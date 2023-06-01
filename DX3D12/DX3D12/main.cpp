@@ -1,5 +1,5 @@
 ﻿#include "DirectXColors.h"
-#include "Chapter9/CrateApp.h"
+#include "Chapter11/StencilApp.h"
 
 using namespace DirectX;
 
@@ -11,7 +11,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE preInstance,PSTR cmdLine,int sh
 
     try
     {
-        CrateApp theApp(hInstance);
+        StencilApp theApp(hInstance);
         if(!theApp.Initialize())
             return 0;
         
