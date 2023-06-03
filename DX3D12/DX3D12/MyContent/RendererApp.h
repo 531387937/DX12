@@ -1,10 +1,9 @@
 ﻿// #pragma once
 // #include "d3dApp.h"
-// #include "d3dUtil.h"
 // #include "FrameResource.h"
-// using namespace Microsoft::WRL;
-// using namespace DirectX;
 //
+// using namespace DirectX;
+// using namespace Microsoft::WRL;
 // struct RenderItem
 // {
 // 	RenderItem() = default;
@@ -39,22 +38,22 @@
 //
 // enum class RenderLayer:int
 // {
-//     Opaque = 0,
-//     Mirrors,
-//     Reflected,
-//     Transparent,
-//     Shadow,
-//     Count
+// 	Opaque = 0,
+// 	Mirrors,
+// 	Reflected,
+// 	Transparent,
+// 	Shadow,
+// 	Count
 // };
 //
-// class StencilApp: public D3DApp
+//
+// class RendererApp:public D3DApp
 // {
 // public:
-//     StencilApp(HINSTANCE hInstance);
-//     StencilApp(const StencilApp& rhs ) = delete;
-//     StencilApp& operator=(const StencilApp& rhs) = delete;
-//     ~StencilApp();
-//
+//     RendererApp(HINSTANCE hInstance);
+//     RendererApp(const RendererApp& rhs) = delete;
+//     RendererApp& operator=(const RendererApp& rhs) = delete;
+// 	~RendererApp();
 //     virtual bool Initialize() override;
 //
 // private:
