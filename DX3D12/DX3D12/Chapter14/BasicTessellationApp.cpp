@@ -1,4 +1,5 @@
 ﻿#include "BasicTessellationApp.h"
+const int gNumFrameResources = 3;
 
 BasicTessellationApp::BasicTessellationApp(HINSTANCE hInstance): D3DApp(hInstance)
 {
@@ -24,7 +25,6 @@ bool BasicTessellationApp::Initialize()
     BuildRootSignature();
     BuildDescriptorHeaps();
     BuildShadersAndInputLayout();
-    BuildRoomGeometry();
     BuildQuadPatchGeometry();
     BuildMaterials();
     BuildRenderItems();
@@ -74,11 +74,55 @@ void BasicTessellationApp::Update(const GameTimer& gt)
     UpdateObjectCBs(gt);
     UpdateMaterialCBs(gt);
     UpdateMainPassCB(gt);
-    UpdateReflectedPassCB(gt);
 }
 
 void BasicTessellationApp::Draw(const GameTimer& gt)
 {
+    auto cmdListAlloc = mCurrFrameResource->CmdListAlloc;
+    cmdListAlloc->Reset();
+    ThrowIfFailed(mCommandList->Reset(cmdListAlloc.Get(),mPSOs["opaque"].Get()));
+
+    mCommandList->RSSetViewports(1, &mScreenViewport);
+    mCommandList->RSSetScissorRects(1, &mScissorRect);
+    mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
+                                                                           D3D12_RESOURCE_STATE_PRESENT,
+                                                                           D3D12_RESOURCE_STATE_RENDER_TARGET));
+    mCommandList->ClearRenderTargetView(CurrentBackBufferView(), (float*)&mMainPassCB.FogColor, 0, nullptr);
+    mCommandList->ClearDepthStencilView(DepthStencilView(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0,
+                                        0, nullptr);
+
+    mCommandList->OMSetRenderTargets(1, &CurrentBackBufferView(), true, &DepthStencilView());
+
+    ID3D12DescriptorHeap* descriptorHeaps[] = {mSrvDescriptorHeap.Get()};
+    mCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+    mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+
+    UINT passCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
+
+    auto passCB = mCurrFrameResource->PassCB->Resource();
+    mCommandList->SetGraphicsRootConstantBufferView(2, passCB->GetGPUVirtualAddress());
+    DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)RenderLayer::Opaque]);
+
+    mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
+                                                                           D3D12_RESOURCE_STATE_RENDER_TARGET,
+                                                                           D3D12_RESOURCE_STATE_PRESENT));
+
+    ThrowIfFailed(mCommandList->Close());
+
+    ID3D12CommandList* cmdLists[] = {mCommandList.Get()};
+    mCommandQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
+
+    ThrowIfFailed(mSwapChain->Present(0,0));
+    mCurrBackBuffer = (mCurrBackBuffer + 1) % SwapChainBufferCount;
+
+    // Advance the fence value to mark commands up to this fence point.
+    mCurrFrameResource->Fence = ++mCurrentFence;
+
+    // Add an instruction to the command queue to set a new fence point. 
+    // Because we are on the GPU timeline, the new fence point won't be 
+    // set until the GPU finishes processing all the commands prior to this Signal().
+    mCommandQueue->Signal(mFence.Get(), mCurrentFence);
 }
 
 void BasicTessellationApp::OnMouseDown(WPARAM btnState, int x, int y)
@@ -155,53 +199,226 @@ void BasicTessellationApp::AnimateMaterials(const GameTimer& gt)
 
 void BasicTessellationApp::UpdateObjectCBs(const GameTimer& gt)
 {
+    auto currObjectCB = mCurrFrameResource->ObjectCB.get();
+    for (auto& e : mAllRitems)
+    {
+        // Only update the cbuffer data if the constants have changed.  
+        // This needs to be tracked per frame resource.
+        if (e->NumFramesDirty > 0)
+        {
+            XMMATRIX world = XMLoadFloat4x4(&e->World);
+            XMMATRIX texTransform = XMLoadFloat4x4(&e->TexTransform);
+
+            ObjectConstants objConstants;
+            XMStoreFloat4x4(&objConstants.World, XMMatrixTranspose(world));
+            XMStoreFloat4x4(&objConstants.TexTransform, XMMatrixTranspose(texTransform));
+
+            currObjectCB->CopyData(e->ObjCBIndex, objConstants);
+
+            // Next FrameResource need to be updated too.
+            e->NumFramesDirty--;
+        }
+    }
 }
 
 void BasicTessellationApp::UpdateMaterialCBs(const GameTimer& gt)
 {
+    auto currMaterialCB = mCurrFrameResource->MaterialCB.get();
+    for (auto& e : mMaterials)
+    {
+        // Only update the cbuffer data if the constants have changed.  If the cbuffer
+        // data changes, it needs to be updated for each FrameResource.
+        Material* mat = e.second.get();
+        if (mat->NumFramesDirty > 0)
+        {
+            XMMATRIX matTransform = XMLoadFloat4x4(&mat->MatTransform);
+
+            MaterialConstants matConstants;
+            matConstants.DiffuseAlbedo = mat->DiffuseAlbedo;
+            matConstants.FresnelR0 = mat->FresnelR0;
+            matConstants.Roughness = mat->Roughness;
+            XMStoreFloat4x4(&matConstants.MatTransform, XMMatrixTranspose(matTransform));
+
+            currMaterialCB->CopyData(mat->MatCBIndex, matConstants);
+
+            // Next FrameResource need to be updated too.
+            mat->NumFramesDirty--;
+        }
+    }
 }
 
 void BasicTessellationApp::UpdateMainPassCB(const GameTimer& gt)
 {
-}
+    XMMATRIX view = XMLoadFloat4x4(&mView);
+    XMMATRIX proj = XMLoadFloat4x4(&mProj);
 
-void BasicTessellationApp::UpdateReflectedPassCB(const GameTimer& gt)
-{
+    XMMATRIX viewProj = XMMatrixMultiply(view, proj);
+    XMMATRIX invView = XMMatrixInverse(&XMMatrixDeterminant(view), view);
+    XMMATRIX invProj = XMMatrixInverse(&XMMatrixDeterminant(proj), proj);
+    XMMATRIX invViewProj = XMMatrixInverse(&XMMatrixDeterminant(viewProj), viewProj);
+
+    XMStoreFloat4x4(&mMainPassCB.View, XMMatrixTranspose(view));
+    XMStoreFloat4x4(&mMainPassCB.InvView, XMMatrixTranspose(invView));
+    XMStoreFloat4x4(&mMainPassCB.Proj, XMMatrixTranspose(proj));
+    XMStoreFloat4x4(&mMainPassCB.InvProj, XMMatrixTranspose(invProj));
+    XMStoreFloat4x4(&mMainPassCB.ViewProj, XMMatrixTranspose(viewProj));
+    XMStoreFloat4x4(&mMainPassCB.InvViewProj, XMMatrixTranspose(invViewProj));
+    mMainPassCB.EyePosW = mEyePos;
+    mMainPassCB.RenderTargetSize = XMFLOAT2((float)mClientWidth, (float)mClientHeight);
+    mMainPassCB.InvRenderTargetSize = XMFLOAT2(1.0f / mClientWidth, 1.0f / mClientHeight);
+    mMainPassCB.NearZ = 1.0f;
+    mMainPassCB.FarZ = 1000.0f;
+    mMainPassCB.TotalTime = gt.TotalTime();
+    mMainPassCB.DeltaTime = gt.DeltaTime();
+    mMainPassCB.AmbientLight = {0.25f, 0.25f, 0.35f, 1.0f};
+    mMainPassCB.Lights[0].Direction = {0.57735f, -0.57735f, 0.57735f};
+    mMainPassCB.Lights[0].Strength = {0.6f, 0.6f, 0.6f};
+    mMainPassCB.Lights[1].Direction = {-0.57735f, -0.57735f, 0.57735f};
+    mMainPassCB.Lights[1].Strength = {0.3f, 0.3f, 0.3f};
+    mMainPassCB.Lights[2].Direction = {0.0f, -0.707f, -0.707f};
+    mMainPassCB.Lights[2].Strength = {0.15f, 0.15f, 0.15f};
+
+    // Main pass stored in index 2
+    auto currPassCB = mCurrFrameResource->PassCB.get();
+    currPassCB->CopyData(0, mMainPassCB);
 }
 
 void BasicTessellationApp::LoadTextures()
 {
+    auto bricksTex = std::make_unique<Texture>();
+    bricksTex->Name = "bricksTex";
+    bricksTex->Filename = L"Textures/bricks.dds";
+    ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+        mCommandList.Get(), bricksTex->Filename.c_str(),
+        bricksTex->Resource, bricksTex->UploadHeap));
+
+    auto checkboardTex = std::make_unique<Texture>();
+    checkboardTex->Name = "checkboardTex";
+    checkboardTex->Filename = L"Textures/checkboard.dds";
+    ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+        mCommandList.Get(), checkboardTex->Filename.c_str(),
+        checkboardTex->Resource, checkboardTex->UploadHeap));
+
+    auto iceTex = std::make_unique<Texture>();
+    iceTex->Name = "iceTex";
+    iceTex->Filename = L"Textures/ice.dds";
+    ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+        mCommandList.Get(), iceTex->Filename.c_str(),
+        iceTex->Resource, iceTex->UploadHeap));
+
+    auto white1x1Tex = std::make_unique<Texture>();
+    white1x1Tex->Name = "white1x1Tex";
+    white1x1Tex->Filename = L"Textures/white1x1.dds";
+    ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+        mCommandList.Get(), white1x1Tex->Filename.c_str(),
+        white1x1Tex->Resource, white1x1Tex->UploadHeap));
+
+    mTextures[bricksTex->Name] = std::move(bricksTex);
+    mTextures[checkboardTex->Name] = std::move(checkboardTex);
+    mTextures[iceTex->Name] = std::move(iceTex);
+    mTextures[white1x1Tex->Name] = std::move(white1x1Tex);
 }
 
 void BasicTessellationApp::BuildRootSignature()
 {
+    CD3DX12_DESCRIPTOR_RANGE texTable;
+    texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+
+    CD3DX12_ROOT_PARAMETER slotRootParameters[4];
+    slotRootParameters[0].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL);
+    slotRootParameters[1].InitAsConstantBufferView(0);
+    slotRootParameters[2].InitAsConstantBufferView(1);
+    slotRootParameters[3].InitAsConstantBufferView(2);
+
+    auto staticSamplers = GetStaticSamplers();
+
+    ComPtr<ID3DBlob> serializedSig = nullptr;
+    ComPtr<ID3DBlob> errorBlob = nullptr;
+
+    CD3DX12_ROOT_SIGNATURE_DESC sigDesc(4, slotRootParameters, (UINT)staticSamplers.size(), staticSamplers.data(),
+                                        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+    HRESULT hr = D3D12SerializeRootSignature(&sigDesc, D3D_ROOT_SIGNATURE_VERSION_1, serializedSig.GetAddressOf(),
+                                             errorBlob.GetAddressOf());
+
+    if (errorBlob != nullptr)
+    {
+        OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+    }
+    ThrowIfFailed(hr);
+
+    ThrowIfFailed(
+        md3dDevice->CreateRootSignature(0,serializedSig->GetBufferPointer(),serializedSig->GetBufferSize(),IID_PPV_ARGS(
+            mRootSignature.GetAddressOf())));
 }
 
 void BasicTessellationApp::BuildDescriptorHeaps()
 {
+    D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+    srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    srvHeapDesc.NumDescriptors = 4;
+    ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&srvHeapDesc,IID_PPV_ARGS(mSrvDescriptorHeap.GetAddressOf())));
+
+    CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor(mSrvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+    auto bricksTex = mTextures["bricksTex"]->Resource;
+    auto checkboardTex = mTextures["checkboardTex"]->Resource;
+    auto iceTex = mTextures["iceTex"]->Resource;
+    auto white1x1Tex = mTextures["white1x1Tex"]->Resource;
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Format = bricksTex->GetDesc().Format;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.MipLevels = -1;
+    md3dDevice->CreateShaderResourceView(bricksTex.Get(), &srvDesc, hDescriptor);
+
+    // next descriptor
+    hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+    srvDesc.Format = checkboardTex->GetDesc().Format;
+    md3dDevice->CreateShaderResourceView(checkboardTex.Get(), &srvDesc, hDescriptor);
+
+    // next descriptor
+    hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+    srvDesc.Format = iceTex->GetDesc().Format;
+    md3dDevice->CreateShaderResourceView(iceTex.Get(), &srvDesc, hDescriptor);
+
+    // next descriptor
+    hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+    srvDesc.Format = white1x1Tex->GetDesc().Format;
+    md3dDevice->CreateShaderResourceView(white1x1Tex.Get(), &srvDesc, hDescriptor);
 }
 
 void BasicTessellationApp::BuildShadersAndInputLayout()
 {
-}
+    mShaders["VS"] = d3dUtil::CompileShader(L"Shaders\\Tessellation.hlsl", nullptr, "VS", "vs_5_0");
+    mShaders["HS"] = d3dUtil::CompileShader(L"Shaders\\Tessellation.hlsl", nullptr, "HS", "hs_5_0");
+    mShaders["DS"] = d3dUtil::CompileShader(L"Shaders\\Tessellation.hlsl", nullptr, "DS", "ds_5_0");
+    mShaders["PS"] = d3dUtil::CompileShader(L"Shaders\\Tessellation.hlsl", nullptr, "PS", "ps_5_0");
 
-void BasicTessellationApp::BuildRoomGeometry()
-{
+    mInputLayout =
+    {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
+    };
 }
 
 void BasicTessellationApp::BuildQuadPatchGeometry()
 {
-    std::array<XMFLOAT3, 4> vertices =
+    std::array<XMFLOAT3, 3> vertices =
     {
         XMFLOAT3(-10.0f, 0.0f, +10.0f),
         XMFLOAT3(+10.0f, 0.0f, +10.0f),
         XMFLOAT3(-10.0f, 0.0f, -10.0f),
-        XMFLOAT3(+10.0f, 0.0f, -10.0f)
+        //XMFLOAT3(+10.0f, 0.0f, -10.0f)
     };
 
-    std::array<std::int16_t, 4> indices = {0, 1, 2, 3};
+    std::array<std::uint16_t, 4> indices = {0, 1, 2};
     const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
-    const UINT ibBytesize = (UINT)indices.size() * sizeof(int16_t);
+    const UINT ibBytesize = (UINT)indices.size() * sizeof(uint16_t);
 
     auto geo = std::make_unique<MeshGeometry>();
     geo->Name = "quadpatchGeo";
@@ -214,7 +431,7 @@ void BasicTessellationApp::BuildQuadPatchGeometry()
 
     geo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(), mCommandList.Get(), vertices.data(),
                                                         vbByteSize, geo->VertexBufferUploader);
-    geo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(), mCommandList.Get(), vertices.data(),
+    geo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(), mCommandList.Get(), indices.data(),
                                                        ibBytesize, geo->IndexBufferUploader);
 
     geo->VertexByteStride = sizeof(XMFLOAT3);
@@ -223,7 +440,7 @@ void BasicTessellationApp::BuildQuadPatchGeometry()
     geo->IndexBufferByteSize = ibBytesize;
 
     SubmeshGeometry quadSubmesh;
-    quadSubmesh.IndexCount = 4;
+    quadSubmesh.IndexCount = 3;
     quadSubmesh.BaseVertexLocation = 0;
     quadSubmesh.StartIndexLocation = 0;
 
@@ -235,7 +452,7 @@ void BasicTessellationApp::BuildQuadPatchGeometry()
 void BasicTessellationApp::BuildPSOs()
 {
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
-    ZeroMemory(&psoDesc,sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+    ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
     psoDesc.VS = {
         reinterpret_cast<BYTE*>(mShaders["VS"]->GetBufferPointer()),
         mShaders["VS"]->GetBufferSize()
@@ -252,22 +469,43 @@ void BasicTessellationApp::BuildPSOs()
         reinterpret_cast<BYTE*>(mShaders["DS"]->GetBufferPointer()),
         mShaders["DS"]->GetBufferSize()
     };
-    psoDesc.InputLayout = {mInputLayout.data(),(UINT)mInputLayout.size()};
+    psoDesc.InputLayout = {mInputLayout.data(), (UINT)mInputLayout.size()};
     psoDesc.pRootSignature = mRootSignature.Get();
     psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+    psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
     psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
     psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     psoDesc.NumRenderTargets = 1;
     psoDesc.RTVFormats[0] = mBackBufferFormat;
-    psoDesc.SampleDesc.Count = m4xMsaaState?(m4xMsaaQuality-1):0;
+    psoDesc.SampleDesc.Count = m4xMsaaState ? 4 : 1;
+    psoDesc.SampleDesc.Quality = m4xMsaaState ? (m4xMsaaQuality - 1) : 0;
+    psoDesc.DSVFormat = mDepthStencilFormat;
+    psoDesc.SampleMask = UINT_MAX;
+    psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+
+    ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&psoDesc,IID_PPV_ARGS(&mPSOs["opaque"])));
 }
 
 void BasicTessellationApp::BuildFrameResources()
 {
+    for (int i = 0; i < gNumFrameResources; i++)
+    {
+        mFrameResources.push_back(
+            std::make_unique<FrameResource>(md3dDevice.Get(), 2, (UINT)mAllRitems.size(), (UINT)mMaterials.size()));
+    }
 }
 
 void BasicTessellationApp::BuildMaterials()
 {
+    auto whiteMat = std::make_unique<Material>();
+    whiteMat->Name = "quadMat";
+    whiteMat->Roughness = 0.5f;
+    whiteMat->MatCBIndex = 0;
+    whiteMat->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+    whiteMat->FresnelR0 = XMFLOAT3(0.1f, 0.1f, 0.1f);
+    whiteMat->DiffuseSrvHeapIndex = 3;
+
+    mMaterials["whiteMat"] = std::move(whiteMat);
 }
 
 void BasicTessellationApp::BuildRenderItems()
@@ -278,7 +516,7 @@ void BasicTessellationApp::BuildRenderItems()
     quadPatchRitem->ObjCBIndex = 0;
     quadPatchRitem->Mat = mMaterials["whiteMat"].get();
     quadPatchRitem->Geo = mGeometries["quadpatchGeo"].get();
-    quadPatchRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST;
+    quadPatchRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
     quadPatchRitem->IndexCount = quadPatchRitem->Geo->DrawArgs["quadpatch"].IndexCount;
     quadPatchRitem->StartIndexLocation = quadPatchRitem->Geo->DrawArgs["quadpatch"].StartIndexLocation;
     quadPatchRitem->BaseVertexLocation = quadPatchRitem->Geo->DrawArgs["quadpatch"].BaseVertexLocation;
@@ -289,6 +527,33 @@ void BasicTessellationApp::BuildRenderItems()
 
 void BasicTessellationApp::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems)
 {
+    UINT objCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
+    UINT matCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(MaterialConstants));
+
+    auto objectCB = mCurrFrameResource->ObjectCB->Resource();
+    auto matCB = mCurrFrameResource->MaterialCB->Resource();
+
+    // For each render item...
+    for (size_t i = 0; i < ritems.size(); ++i)
+    {
+        auto ri = ritems[i];
+
+        cmdList->IASetVertexBuffers(0, 1, &ri->Geo->VertexBufferView());
+        cmdList->IASetIndexBuffer(&ri->Geo->IndexBufferView());
+        cmdList->IASetPrimitiveTopology(ri->PrimitiveType);
+
+        CD3DX12_GPU_DESCRIPTOR_HANDLE tex(mSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+        tex.Offset(ri->Mat->DiffuseSrvHeapIndex, mCbvSrvDescriptorSize);
+
+        D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = objectCB->GetGPUVirtualAddress() + ri->ObjCBIndex * objCBByteSize;
+        D3D12_GPU_VIRTUAL_ADDRESS matCBAddress = matCB->GetGPUVirtualAddress() + ri->Mat->MatCBIndex * matCBByteSize;
+
+        cmdList->SetGraphicsRootDescriptorTable(0, tex);
+        cmdList->SetGraphicsRootConstantBufferView(1, objCBAddress);
+        cmdList->SetGraphicsRootConstantBufferView(3, matCBAddress);
+
+        cmdList->DrawIndexedInstanced(ri->IndexCount, 1, ri->StartIndexLocation, ri->BaseVertexLocation, 0);
+    }
 }
 
 std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> BasicTessellationApp::GetStaticSamplers()

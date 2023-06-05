@@ -1,5 +1,5 @@
 ﻿#include "DirectXColors.h"
-#include "Chapter11/StencilApp.h"
+#include "Chapter14/BasicTessellationApp.h"
 
 using namespace DirectX;
 
@@ -11,7 +11,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE preInstance,PSTR cmdLine,int sh
 
     try
     {
-        StencilApp theApp(hInstance);
+        BasicTessellationApp theApp(hInstance);
         if(!theApp.Initialize())
             return 0;
         
