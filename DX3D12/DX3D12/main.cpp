@@ -1,5 +1,5 @@
 ﻿#include "DirectXColors.h"
-#include "Chapter14/BasicTessellationApp.h"
+#include "Chapter9/TexColumns.h"
 
 using namespace DirectX;
 
@@ -11,7 +11,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE preInstance,PSTR cmdLine,int sh
 
     try
     {
-        BasicTessellationApp theApp(hInstance);
+        TexColumnsApp theApp(hInstance);
         if(!theApp.Initialize())
             return 0;
         

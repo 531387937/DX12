@@ -47,8 +47,8 @@
 // {
 //     D3DApp::OnResize();
 //
-//     XMMATRIX p = XMMatrixPerspectiveFovLH(0.25f * MathHelper::Pi, AspectRatio(), 1.0f, 1000.0f);
-//     XMStoreFloat4x4(&mProj, p);
+//     mCamera.SetLens(0.25f*MathHelper::Pi,AspectRatio(),1.0f,1000.0f);
+//     XMStoreFloat4x4(&mProj, mCamera.GetProj());
 // }
 //
 // void ShapesApp::Update(const GameTimer& gt)
@@ -147,25 +147,10 @@
 //         float dx = XMConvertToRadians(0.25f * static_cast<float>(x - mLastMousePos.x));
 //         float dy = XMConvertToRadians(0.25f * static_cast<float>(y - mLastMousePos.y));
 //
-//         // Update angles based on input to orbit camera around box.
-//         mTheta += dx;
-//         mPhi += dy;
-//
-//         // Restrict the angle mPhi.
-//         mPhi = MathHelper::Clamp(mPhi, 0.1f, MathHelper::Pi - 0.1f);
+//         mCamera.Pitch(dy);
+//         mCamera.RotateY(dx);
 //     }
-//     else if ((btnState & MK_RBUTTON) != 0)
-//     {
-//         // Make each pixel correspond to 0.2 unit in the scene.
-//         float dx = 0.05f * static_cast<float>(x - mLastMousePos.x);
-//         float dy = 0.05f * static_cast<float>(y - mLastMousePos.y);
-//
-//         // Update the camera radius based on input.
-//         mRadius += dx - dy;
-//
-//         // Restrict the radius.
-//         mRadius = MathHelper::Clamp(mRadius, 5.0f, 150.0f);
-//     }
+//     
 //
 //     mLastMousePos.x = x;
 //     mLastMousePos.y = y;
@@ -181,17 +166,16 @@
 //
 // void ShapesApp::UpdateCamera(const GameTimer& gt)
 // {
-//     mEyePos.x = mRadius * sinf(mPhi) * cosf(mTheta);
-//     mEyePos.z = mRadius * sinf(mPhi) * sinf(mTheta);
-//     mEyePos.y = mRadius * cosf(mPhi);
-//
-//     // Build the view matrix.
-//     XMVECTOR pos = XMVectorSet(mEyePos.x, mEyePos.y, mEyePos.z, 1.0f);
-//     XMVECTOR target = XMVectorZero();
-//     XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-//
-//     XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
-//     XMStoreFloat4x4(&mView, view);
+//     if(GetAsyncKeyState('W')&0x8000)
+//         mCamera.Walk(10.0f*gt.DeltaTime());
+//     if(GetAsyncKeyState('S')&0x8000)
+//         mCamera.Walk(-10.0f*gt.DeltaTime());
+//     if(GetAsyncKeyState('A')&0x8000)
+//         mCamera.Strafe(-10.0f*gt.DeltaTime());
+//     if(GetAsyncKeyState('D')&0x8000)
+//         mCamera.Strafe(10.0f*gt.DeltaTime());
+//     mCamera.UpdateViewMatrix();
+//     XMStoreFloat4x4(&mView, mCamera.GetView());
 // }
 //
 // void ShapesApp::BuildFrameResources()

@@ -2,6 +2,7 @@
 // #include "d3dApp.h"
 // #include "d3dUtil.h"
 // #include "UploadBuffer.h"
+// #include "../Camera.h"
 // using namespace DirectX;
 // using namespace Microsoft::WRL;
 //
@@ -121,7 +122,7 @@
 //     void BuildPSO();
 //
 // private:
-//
+//     Camera mCamera;
 //     std::vector<std::unique_ptr<FrameResource>> mFrameResources;
 //     FrameResource* mCurrFrameResource = nullptr;
 //     int mCurrFrameResourceIndex = 0;

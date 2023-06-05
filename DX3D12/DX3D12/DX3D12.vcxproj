@@ -151,6 +151,11 @@
     <ClCompile Include="..\..\d3d12book-master\Common\GameTimer.cpp" />
     <ClCompile Include="..\..\d3d12book-master\Common\GeometryGenerator.cpp" />
     <ClCompile Include="..\..\d3d12book-master\Common\MathHelper.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Chapter11\FrameResource.cpp" />
+    <ClCompile Include="Chapter11\StencilApp.cpp" />
+    <ClCompile Include="Chapter14\BasicTessellationApp.cpp" />
+    <ClCompile Include="Chapter14\FrameResource.cpp" />
     <ClCompile Include="Chapter4\InitDirect3DApp.cpp">
       <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -239,6 +244,11 @@
     <ClInclude Include="..\..\d3d12book-master\Common\GeometryGenerator.h" />
     <ClInclude Include="..\..\d3d12book-master\Common\MathHelper.h" />
     <ClInclude Include="..\..\d3d12book-master\Common\UploadBuffer.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Chapter11\FrameResource.h" />
+    <ClInclude Include="Chapter11\StencilApp.h" />
+    <ClInclude Include="Chapter14\BasicTessellationApp.h" />
+    <ClInclude Include="Chapter14\FrameResource.h" />
     <ClInclude Include="Chapter4\InitDirect3DApp.h" />
     <ClInclude Include="Chapter6\BoxApp.h" />
     <ClInclude Include="Chapter7\ShapesApp.h" />
