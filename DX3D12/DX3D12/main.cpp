@@ -1,5 +1,5 @@
 ﻿#include "DirectXColors.h"
-#include "Chapter9/TexColumns.h"
+#include "Chapter16/InstancingAndCullingApp.h"
 
 using namespace DirectX;
 
@@ -11,7 +11,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE preInstance,PSTR cmdLine,int sh
 
     try
     {
-        TexColumnsApp theApp(hInstance);
+        InstancingAndCullingApp theApp(hInstance);
         if(!theApp.Initialize())
             return 0;
         
