@@ -33,7 +33,7 @@ struct RenderItem
 	// Primitive topology.
 	D3D12_PRIMITIVE_TOPOLOGY PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
-	BoundingBox Bounds;
+	BoundingSphere Bounds;
 	std::vector<InstanceData> Instances;
 
 	// DrawIndexedInstanced parameters.

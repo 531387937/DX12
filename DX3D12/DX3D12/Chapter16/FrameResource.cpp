@@ -10,8 +10,3 @@ FrameResource::FrameResource(ID3D12Device* device, UINT passCount, UINT maxInsta
     MaterialBuffer = std::make_unique<UploadBuffer<MaterialData>>(device, materialCount, false);
     InstanceBuffer = std::make_unique<UploadBuffer<InstanceData>>(device, maxInstanceCount, false);
 }
-
-FrameResource::~FrameResource()
-{
-
-}

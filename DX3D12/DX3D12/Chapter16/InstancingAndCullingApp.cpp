@@ -100,6 +100,9 @@ void InstancingAndCullingApp::Draw(const GameTimer& gt)
     auto matBuffer = mCurrFrameResource->MaterialBuffer->Resource();
     mCommandList->SetGraphicsRootShaderResourceView(1,matBuffer->GetGPUVirtualAddress());
 
+	auto passCB = mCurrFrameResource->PassCB->Resource();
+	mCommandList->SetGraphicsRootConstantBufferView(2, passCB->GetGPUVirtualAddress());
+
     mCommandList->SetGraphicsRootDescriptorTable(3,mSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
     DrawRenderItems(mCommandList.Get(),mOpaqueRitems);
@@ -223,7 +226,7 @@ void InstancingAndCullingApp::UpdateInstanceData(const GameTimer& gt)
 
         std::wostringstream outs;
         outs.precision(6);
-        outs<<L"Instancing and Culling Demo"<<L" "<<e->IndexCount<<L" objects visible out of " << e->Instances.size();
+        outs<<L"Instancing and Culling Demo"<<L" "<<e->InstanceCount<<L" objects visible out of " << e->Instances.size();
         mMainWndCaption = outs.str();
     }
 }
@@ -527,10 +530,17 @@ void InstancingAndCullingApp::BuildSkullGeometry()
 		vMin = XMVectorMin(vMin, P);
 		vMax = XMVectorMax(vMax, P);
 	}
-
-	BoundingBox bounds;
+	
+	BoundingSphere bounds;
 	XMStoreFloat3(&bounds.Center, 0.5f*(vMin + vMax));
-	XMStoreFloat3(&bounds.Extents, 0.5f*(vMax - vMin));
+	XMVECTOR center = XMLoadFloat3(&bounds.Center);
+	for(UINT i = 0; i < vcount; ++i)
+	{
+		XMVECTOR pos = XMLoadFloat3(&vertices[i].Pos);
+		float l= XMVector3Length(pos-center).m128_f32[0];
+		bounds.Radius = max(l,bounds.Radius);
+	}
+	//XMStoreFloat3(&bounds.Extents, 0.5f*(vMax - vMin));
 
 	fin >> ignore;
 	fin >> ignore;
@@ -766,7 +776,7 @@ void InstancingAndCullingApp::DrawRenderItems(ID3D12GraphicsCommandList* cmdList
         auto instanceBuffer = mCurrFrameResource->InstanceBuffer->Resource();
         mCommandList->SetGraphicsRootShaderResourceView(0,instanceBuffer->GetGPUVirtualAddress());
 
-        cmdList->DrawIndexedInstanced(ri->IndexCount,ri->IndexCount,ri->StartIndexLocation,ri->BaseVertexLocation,0);
+        cmdList->DrawIndexedInstanced(ri->IndexCount,ri->InstanceCount,ri->StartIndexLocation,ri->BaseVertexLocation,0);
     }
 }
 
