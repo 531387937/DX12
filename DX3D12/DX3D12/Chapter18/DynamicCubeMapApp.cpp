@@ -208,6 +208,21 @@ void DynamicCubeMapApp::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, cons
 
 void DynamicCubeMapApp::DrawSceneToCubeMap()
 {
+    mCommandList->RSSetViewports(1,&mDynamicCubeMap->Viewport());
+    mCommandList->RSSetScissorRects(1,&mDynamicCubeMap->ScissorRect());
+
+    //立方体资源转为渲染目标
+    mCommandList->ResourceBarrier(1,&CD3DX12_RESOURCE_BARRIER::Transition(mDynamicCubeMap->Resource(),D3D12_RESOURCE_STATE_GENERIC_READ,
+        D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+    UINT passCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
+
+    for(int i = 0;i<6;++i)
+    {
+        mCommandList->ClearRenderTargetView(mDynamicCubeMap->Rtv(i),Colors::LightSteelBlue,0,nullptr);
+        mCommandList->ClearDepthStencilView(mCubeDSV,D3D12_CLEAR_FLAG_DEPTH|D3D12_CLEAR_FLAG_STENCIL,1.0f,0,0,nullptr);
+        
+    }
 }
 
 std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> DynamicCubeMapApp::GetStaticSamplers()
