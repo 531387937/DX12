@@ -3,7 +3,7 @@
 CubeRenderTarget::CubeRenderTarget(ID3D12Device* device, UINT width, UINT height, DXGI_FORMAT format):md3dDevice(device),mWidth(width),mHeight(height),mFormat(format)
 {
     mViewport = {0.0f,0.0f,(float)width,(float)height,0.0f,1.0f};
-    mScissorRect = {0,0,width,height};
+    mScissorRect = {0,0,(int)width,(int)height};
 
     BuildResource();
 }
@@ -20,7 +20,7 @@ CD3DX12_GPU_DESCRIPTOR_HANDLE CubeRenderTarget::Srv()
 
 CD3DX12_CPU_DESCRIPTOR_HANDLE CubeRenderTarget::Rtv(int faceIndex)
 {
-    return mhCpuSrv;
+    return mhCpuRtv[faceIndex];
 }
 
 D3D12_VIEWPORT CubeRenderTarget::Viewport() const

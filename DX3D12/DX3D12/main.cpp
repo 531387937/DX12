@@ -1,5 +1,5 @@
 ﻿#include "DirectXColors.h"
-#include "Chapter16/InstancingAndCullingApp.h"
+#include "Chapter18/DynamicCubeMapApp.h"
 
 using namespace DirectX;
 
@@ -11,7 +11,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE preInstance,PSTR cmdLine,int sh
 
     try
     {
-        InstancingAndCullingApp theApp(hInstance);
+        DynamicCubeMapApp theApp(hInstance);
         if(!theApp.Initialize())
             return 0;
         
