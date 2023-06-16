@@ -1,6 +1,6 @@
 ﻿#include "DirectXColors.h"
-#include "Chapter18/DynamicCubeMapApp.h"
-
+#include "DefferedShading/DefferedShading.h"
+#include "Chapter20/ShadowMapApp.h"
 using namespace DirectX;
 
 int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE preInstance,PSTR cmdLine,int showCmd)
@@ -11,7 +11,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE preInstance,PSTR cmdLine,int sh
 
     try
     {
-        DynamicCubeMapApp theApp(hInstance);
+        DefferedShading theApp(hInstance);
         if(!theApp.Initialize())
             return 0;
         
