@@ -103,6 +103,7 @@ private:
     ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
 
     ComPtr<ID3D12DescriptorHeap> mSrvDescriptorHeap = nullptr;
+    ComPtr<ID3D12DescriptorHeap> mdSrvDescriptorHeap = nullptr;
 
     std::unordered_map<std::string, std::unique_ptr<MeshGeometry>> mGeometries;
     std::unordered_map<std::string, std::unique_ptr<Material>> mMaterials;
@@ -122,10 +123,6 @@ private:
     UINT mShadowMapHeapIndex = 0;
     UINT mGBufferHeapIndex = 0;
 
-    UINT mNullCubeSrvIndex = 0;
-    UINT mNullTexSrvIndex = 0;
-
-    CD3DX12_GPU_DESCRIPTOR_HANDLE mNullSrv;
 
     PassConstants mMainPassCB; // index 0 of pass cbuffer.
     PassConstants mShadowPassCB; // index 1 of pass cbuffer.

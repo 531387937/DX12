@@ -50,11 +50,18 @@ VertexOut VS(VertexIn vin)
     return vout;
 }
 
+float LinearizeDepth(float depth)
+{
+	float z = depth * 2.0 - 1.0; // »Øµ½NDC
+	return (2.0 * gNearZ * gFarZ) / (gFarZ + gNearZ - z * (gFarZ - gNearZ));
+}
+
 struct PixelOut
 {
 	float4 position : SV_Target0;
 	float4 normal : SV_Target1;
 	float4 albedo : SV_Target2;
+	float4 other :SV_Target3;
 };
 
 PixelOut PS(VertexOut pin)
@@ -76,9 +83,10 @@ PixelOut PS(VertexOut pin)
     Pout.normal = gTextureMaps[normalMapIndex].Sample(gsamAnisotropicWrap, pin.TexC);
     Pout.normal.xyz = NormalSampleToWorldSpace(Pout.normal.rgb, pin.NormalW, pin.TangentW);
     Pout.position = pin.PosW;
-    Pout.normal.a = (1.0f - roughness) * Pout.normal.a;
+    
 	
-   
+	Pout.other.r = (1.0f - roughness) * Pout.normal.a;
+	Pout.normal.a = LinearizeDepth(pin.PosH.z);
     return Pout;
 }
 

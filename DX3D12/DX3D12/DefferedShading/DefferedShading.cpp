@@ -50,11 +50,18 @@ bool DefferedShading::Initialize()
 void DefferedShading::CreateRtvAndDsvDescriptorHeaps()
 {
     D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
-    rtvHeapDesc.NumDescriptors = SwapChainBufferCount+3;
+    rtvHeapDesc.NumDescriptors = SwapChainBufferCount+4;
     rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
     rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
     rtvHeapDesc.NodeMask = 0;
     ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&rtvHeapDesc,IID_PPV_ARGS(mRtvHeap.GetAddressOf())));
+
+    D3D12_DESCRIPTOR_HEAP_DESC dRtvHeapDesc;
+   dRtvHeapDesc.NumDescriptors = 4;
+   dRtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+   dRtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+   dRtvHeapDesc.NodeMask = 0;
+    ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&dRtvHeapDesc, IID_PPV_ARGS(mDefferedRtvHeap.GetAddressOf())));
 
     D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
     dsvHeapDesc.NumDescriptors = 2;
@@ -130,8 +137,6 @@ void DefferedShading::Draw(const GameTimer& gt)
     auto matBuffer = mCurrFrameResource->MaterialBuffer->Resource();
     mCommandList->SetGraphicsRootShaderResourceView(2, matBuffer->GetGPUVirtualAddress());
 
-    mCommandList->SetGraphicsRootDescriptorTable(3, mNullSrv);
-
     mCommandList->SetGraphicsRootDescriptorTable(4, mSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
     
     mCommandList->ClearDepthStencilView(DepthStencilView(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0,
@@ -157,7 +162,9 @@ void DefferedShading::Draw(const GameTimer& gt)
     CD3DX12_GPU_DESCRIPTOR_HANDLE shadowTexDescriptor(mSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
     shadowTexDescriptor.Offset(mShadowMapHeapIndex, mCbvSrvUavDescriptorSize);
     mCommandList->SetGraphicsRootDescriptorTable(5, shadowTexDescriptor);
-
+    ID3D12DescriptorHeap* descriptorHeaps1[] = { mdSrvDescriptorHeap.Get() };
+    mCommandList->SetDescriptorHeaps(_countof(descriptorHeaps1), descriptorHeaps1);
+    mCommandList->SetGraphicsRootDescriptorTable(6, mdSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
     mCommandList->SetPipelineState(mPSOs["RT"].Get());
     DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)RenderLayer::RT]);
 
@@ -443,12 +450,15 @@ void DefferedShading::BuildRootSignature()
     texTable0.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
 
     CD3DX12_DESCRIPTOR_RANGE texTable1;
-    texTable1.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 13, 2, 0);
+    texTable1.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 10, 6, 0);
 
     CD3DX12_DESCRIPTOR_RANGE texTable2;
     texTable2.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 0);
 
-    CD3DX12_ROOT_PARAMETER slotRootParameter[6];
+    CD3DX12_DESCRIPTOR_RANGE texTable3;
+    texTable3.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 2, 0);
+
+    CD3DX12_ROOT_PARAMETER slotRootParameter[7];
 
     slotRootParameter[0].InitAsConstantBufferView(0);
     slotRootParameter[1].InitAsConstantBufferView(1);
@@ -456,9 +466,10 @@ void DefferedShading::BuildRootSignature()
     slotRootParameter[3].InitAsDescriptorTable(1, &texTable0, D3D12_SHADER_VISIBILITY_PIXEL);
     slotRootParameter[4].InitAsDescriptorTable(1, &texTable1, D3D12_SHADER_VISIBILITY_PIXEL);
     slotRootParameter[5].InitAsDescriptorTable(1, &texTable2, D3D12_SHADER_VISIBILITY_PIXEL);
+    slotRootParameter[6].InitAsDescriptorTable(1, &texTable3, D3D12_SHADER_VISIBILITY_PIXEL);
     auto staticSamplers = GetStaticSamplers();
 
-    CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(6, slotRootParameter, (UINT)staticSamplers.size(), staticSamplers.data(),
+    CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(7, slotRootParameter, (UINT)staticSamplers.size(), staticSamplers.data(),
                                             D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     ComPtr<ID3DBlob> serializedRootSig = nullptr;
@@ -482,7 +493,7 @@ void DefferedShading::BuildRootSignature()
 void DefferedShading::BuildDescriptorHeaps()
 {
     D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-    srvHeapDesc.NumDescriptors = 13;
+    srvHeapDesc.NumDescriptors = 10;
     srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvDescriptorHeap)));
@@ -528,20 +539,13 @@ void DefferedShading::BuildDescriptorHeaps()
     md3dDevice->CreateShaderResourceView(skyCubeMap.Get(), &srvDesc, hDescriptor);
 
     mSkyTexHeapIndex = (UINT)tex2DList.size();
-    mGBufferHeapIndex = mSkyTexHeapIndex + 1;
-    mShadowMapHeapIndex = mGBufferHeapIndex + 3;
-
-    mNullCubeSrvIndex = mShadowMapHeapIndex + 1;
-    mNullTexSrvIndex = mNullCubeSrvIndex + 1;
+    //mGBufferHeapIndex = mSkyTexHeapIndex + 1;
+    mShadowMapHeapIndex = mSkyTexHeapIndex+1;
+	
 
     auto srvCpuStart = mSrvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
     auto srvGpuStart = mSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
     auto rtvCpuStart = mRtvHeap->GetCPUDescriptorHandleForHeapStart();
-
-    mGBuffer->BuildDescriptors(
-        CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, mGBufferHeapIndex, mCbvSrvUavDescriptorSize),
-        CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, mGBufferHeapIndex, mCbvSrvUavDescriptorSize),
-        CD3DX12_CPU_DESCRIPTOR_HANDLE(rtvCpuStart,SwapChainBufferCount , mRtvDescriptorSize));
 
     auto dsvCpuStart = mDsvHeap->GetCPUDescriptorHandleForHeapStart();
     mShadowMap->BuildDescriptors(
@@ -549,18 +553,23 @@ void DefferedShading::BuildDescriptorHeaps()
         CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, mShadowMapHeapIndex, mCbvSrvUavDescriptorSize),
         CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvCpuStart, 1, mDsvDescriptorSize));
 
-    auto nullSrv = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, mNullCubeSrvIndex, mCbvSrvUavDescriptorSize);
-    mNullSrv = CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, mNullCubeSrvIndex, mCbvSrvUavDescriptorSize);
 
-    md3dDevice->CreateShaderResourceView(nullptr, &srvDesc, nullSrv);
-    nullSrv.Offset(1, mCbvSrvUavDescriptorSize);
 
-    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    srvDesc.Texture2D.MostDetailedMip = 0;
-    srvDesc.Texture2D.MipLevels = 1;
-    srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-    md3dDevice->CreateShaderResourceView(nullptr, &srvDesc, nullSrv);
+    //创建延迟管线srvHeap
+    D3D12_DESCRIPTOR_HEAP_DESC dSrvHeapDesc = {};
+    dSrvHeapDesc.NumDescriptors = 4;
+    dSrvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    dSrvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&dSrvHeapDesc, IID_PPV_ARGS(&mdSrvDescriptorHeap)));
+
+    srvCpuStart = mdSrvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+    srvGpuStart = mdSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
+    rtvCpuStart = mDefferedRtvHeap->GetCPUDescriptorHandleForHeapStart();
+
+    mGBuffer->BuildDescriptors(
+        CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, 0, mCbvSrvUavDescriptorSize),
+        CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, 0, mCbvSrvUavDescriptorSize),
+        CD3DX12_CPU_DESCRIPTOR_HANDLE(rtvCpuStart, 0, mRtvDescriptorSize));
 }
 
 void DefferedShading::BuildShadersAndInputLayout()
@@ -910,7 +919,8 @@ void DefferedShading::BuildPSOs()
     gBufferPsoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	gBufferPsoDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	gBufferPsoDesc.RTVFormats[2] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-    gBufferPsoDesc.NumRenderTargets = 3;
+    gBufferPsoDesc.RTVFormats[3] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    gBufferPsoDesc.NumRenderTargets = 4;
     ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&gBufferPsoDesc, IID_PPV_ARGS(&mPSOs["GBuffer"])));
 
 	//
@@ -1208,14 +1218,14 @@ void DefferedShading::DrawSceneToGBuffer()
 	mCommandList->RSSetViewports(1,&mGBuffer->Viewport());
 	mCommandList->RSSetScissorRects(1,&mGBuffer->ScissorRect());
 
-	for(int i = 0;i<3;i++)
+	for(int i = 0;i<4;i++)
 	{
 		mCommandList->ResourceBarrier(1,&CD3DX12_RESOURCE_BARRIER::Transition(mGBuffer->Resource()[i],D3D12_RESOURCE_STATE_GENERIC_READ,
         		D3D12_RESOURCE_STATE_RENDER_TARGET));
 		mCommandList->ClearRenderTargetView(mGBuffer->Rtv().Offset(i,mRtvDescriptorSize),DirectX::Colors::Black,0,nullptr);
 	}
 
-	mCommandList->OMSetRenderTargets(3,&mGBuffer->Rtv(),true,&DepthStencilView());
+	mCommandList->OMSetRenderTargets(4,&mGBuffer->Rtv(),true,&DepthStencilView());
 		
 	UINT passCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
 
@@ -1227,7 +1237,7 @@ void DefferedShading::DrawSceneToGBuffer()
 	mCommandList->SetPipelineState(mPSOs["GBuffer"].Get());
 	DrawRenderItems(mCommandList.Get(),mRitemLayer[(int)RenderLayer::Opaque]);
 
-	for(int i = 0;i<3;i++)
+	for(int i = 0;i<4;i++)
 	{
 		mCommandList->ResourceBarrier(1,&CD3DX12_RESOURCE_BARRIER::Transition(mGBuffer->Resource()[i],D3D12_RESOURCE_STATE_RENDER_TARGET,
 				D3D12_RESOURCE_STATE_GENERIC_READ));

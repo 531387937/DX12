@@ -25,7 +25,7 @@ UINT GBuffer::Height()
 
 ID3D12Resource** GBuffer::Resource()
 {
-    ID3D12Resource* resources[] = {mPositionSpeMap.Get(),mNormalMap.Get(),mAlbedoMap.Get()};
+    ID3D12Resource* resources[] = {mPositionSpeMap.Get(),mNormalMap.Get(),mAlbedoMap.Get(),mOtherMap.Get()};
     return resources;
 }
 
@@ -89,6 +89,9 @@ void GBuffer::BuildDescriptors()
     srvheap.Offset(1,mCbvSrvUavDescriptorSize);
     md3dDevice->CreateShaderResourceView(mAlbedoMap.Get(),&srvDesc,srvheap);
 
+    srvheap.Offset(1, mCbvSrvUavDescriptorSize);
+    md3dDevice->CreateShaderResourceView(mOtherMap.Get(), &srvDesc, srvheap);
+
     auto rvtheap = mhCpuRtv;
     D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
     rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
@@ -104,6 +107,10 @@ void GBuffer::BuildDescriptors()
     rvtheap.Offset(1,mRtvDescriptorSize);
     
     md3dDevice->CreateRenderTargetView(mAlbedoMap.Get(),&rtvDesc,rvtheap);
+
+    rvtheap.Offset(1, mRtvDescriptorSize);
+
+    md3dDevice->CreateRenderTargetView(mOtherMap.Get(), &rtvDesc, rvtheap);
     
 }
 
@@ -134,5 +141,8 @@ void GBuffer::BuildResources()
     ThrowIfFailed(md3dDevice->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),D3D12_HEAP_FLAG_NONE,&texDesc,D3D12_RESOURCE_STATE_GENERIC_READ,&optClear,IID_PPV_ARGS(mNormalMap.GetAddressOf())));
 
     ThrowIfFailed(md3dDevice->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),D3D12_HEAP_FLAG_NONE,&texDesc,D3D12_RESOURCE_STATE_GENERIC_READ,&optClear,IID_PPV_ARGS(mAlbedoMap.GetAddressOf())));
+
+    ThrowIfFailed(md3dDevice->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES
+      (D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &texDesc, D3D12_RESOURCE_STATE_GENERIC_READ, &optClear, IID_PPV_ARGS(mOtherMap.GetAddressOf())));
 }
 

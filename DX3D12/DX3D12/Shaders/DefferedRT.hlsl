@@ -5,9 +5,10 @@
 // Include common HLSL code.
 #include "Common.hlsl"
 
-#define posIndex 7
-#define normalIndex 8
-#define albedoIndex 9
+#define posIndex 0
+#define normalIndex 1
+#define albedoIndex 2
+#define otherIndex 3
 
 struct VertexIn
 {
@@ -35,11 +36,11 @@ VertexOut VS(VertexIn vin)
 
 float4 PS(VertexOut pin) : SV_Target
 {
-	float4 diffuseAlbedo = gTextureMaps[albedoIndex].Sample(gsamAnisotropicWrap, pin.TexC);
+	float4 diffuseAlbedo = gDefferedMaps[albedoIndex].Sample(gsamAnisotropicWrap, pin.TexC);
 	float3 fresnelR0 = {1.0,1.0,1.0};
-    float shininess = gTextureMaps[normalIndex].Sample(gsamAnisotropicWrap, pin.TexC).a;
-	float3 normal = gTextureMaps[normalIndex].Sample(gsamAnisotropicWrap, pin.TexC).xyz;
-	float4 PosW = gTextureMaps[posIndex].Sample(gsamAnisotropicWrap, pin.TexC);
+	float shininess = gDefferedMaps[otherIndex].Sample(gsamAnisotropicWrap, pin.TexC).r;
+	float3 normal = gDefferedMaps[normalIndex].Sample(gsamAnisotropicWrap, pin.TexC).xyz;
+	float4 PosW = gDefferedMaps[posIndex].Sample(gsamAnisotropicWrap, pin.TexC);
 
 	float3 toEyeW = normalize(gEyePosW - PosW.xyz);
 

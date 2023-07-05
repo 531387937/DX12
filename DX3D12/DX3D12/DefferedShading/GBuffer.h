@@ -55,4 +55,5 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Resource> mPositionSpeMap = nullptr;
     Microsoft::WRL::ComPtr<ID3D12Resource> mNormalMap = nullptr;
     Microsoft::WRL::ComPtr<ID3D12Resource> mAlbedoMap = nullptr;
+    Microsoft::WRL::ComPtr<ID3D12Resource> mOtherMap = nullptr;
 };
